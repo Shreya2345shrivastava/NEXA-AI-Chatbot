@@ -11,14 +11,27 @@
   <button onclick="send()">Send</button>
   <button onclick="startVoice()">🎤 Speak</button>
 
+  <br><br>
+
+  <button onclick="pauseSpeech()">⏸ Pause</button>
+  <button onclick="resumeSpeech()">▶ Resume</button>
+  <button onclick="stopSpeech()">⏹ Stop</button>
+
   <p id="reply"></p>
 
   <script>
+    // Stop any speech on page load / reload
+    window.onload = () => {
+      window.speechSynthesis.cancel();
+    };
+
     async function send(textFromVoice = null) {
       const message =
         textFromVoice || document.getElementById("msg").value;
 
       if (!message) return;
+
+      stopSpeech(); // stop previous speech
 
       const res = await fetch("http://localhost:5000/chat", {
         method: "POST",
@@ -52,10 +65,28 @@
       };
     }
 
+    let utterance;
+
     function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
+      utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "en-US";
       window.speechSynthesis.speak(utterance);
+    }
+
+    function pauseSpeech() {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+      }
+    }
+
+    function resumeSpeech() {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+
+    function stopSpeech() {
+      window.speechSynthesis.cancel();
     }
   </script>
 

@@ -153,8 +153,13 @@
 </div>
 
 <script>
-  // 🔑 flag to control speaking
+  
   let shouldSpeak = false;
+
+  speechSynthesis.onvoiceschanged = () => {
+  speechSynthesis.getVoices();
+};
+
 
   window.onload = () => speechSynthesis.cancel();
 
@@ -187,10 +192,10 @@
     const data = await res.json();
     addMessage(data.reply, "bot");
 
-    // ✅ speak ONLY if message came from voice
+    
     if (shouldSpeak) {
       speak(data.reply);
-      shouldSpeak = false; // reset
+      shouldSpeak = false; 
     }
   }
 
@@ -206,7 +211,7 @@
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
 
-    shouldSpeak = true; // 🔑 enable speaking
+    shouldSpeak = true; 
     recognition.start();
 
     recognition.onresult = (e) => {
@@ -215,10 +220,34 @@
     };
   }
 
-  function speak(text) {
-    utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
+function speak(text) {
+  
+  const speechText = text
+    .replace(/\bNEXA\b/g, "Nexa")  
+    .replace(/\bAI\b/g, "A I");     
+
+  const voices = speechSynthesis.getVoices();
+
+  const femaleVoice = voices.find(v =>
+    v.name.toLowerCase().includes("zira") ||
+    v.name.toLowerCase().includes("samantha") ||
+    v.name.toLowerCase().includes("female")
+  );
+
+  utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.lang = "en-US";
+
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
   }
+
+  utterance.pitch = 1.1;
+  utterance.rate = 1.0;
+
+  speechSynthesis.speak(utterance);
+}
+
+
 
   function pauseSpeech() { speechSynthesis.pause(); }
   function resumeSpeech() { speechSynthesis.resume(); }

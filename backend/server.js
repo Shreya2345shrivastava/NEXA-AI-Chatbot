@@ -16,24 +16,43 @@ app.post("/chat", async (req, res) => {
       {
         model: "llama-3.1-8b-instant",
         messages: [
-          { role: "system", content: "You are NEXA, a calm and helpful AI assistant." },
-          { role: "user", content: userMessage }
+          {
+            role: "system",
+            content: "You are NEXA, a calm, friendly, and helpful AI assistant."
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
         ]
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        timeout: 15000 // ⏱️ prevents ECONNRESET issues
       }
     );
 
     res.json({
       reply: response.data.choices[0].message.content
     });
+
   } catch (error) {
-    console.log("FULL ERROR 👉", error.response?.data || error.message);
-    res.status(500).json({ reply: "AI error occurred. Check backend console." });
+    console.error("AI ERROR:", error.code || error.message);
+
+    let reply = "NEXA is thinking 🤍 Please try again.";
+
+    if (error.code === "ECONNRESET") {
+      reply = "NEXA is a little busy 😴 Please try again in a moment.";
+    }
+
+    if (error.response?.status === 429) {
+      reply = "Too many requests 🚦 Please slow down a bit.";
+    }
+
+    res.status(500).json({ reply });
   }
 });
 

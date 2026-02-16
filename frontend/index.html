@@ -1,94 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>NEXA AI Chatbot</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXA AI</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* ===== MAIN CHAT CONTAINER ===== */
+  .chat-container {
+    width: 100%;
+    max-width: 420px;          /* mobile default */
+    height: 90vh;
+    background: #ffffff;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+
+  .header {
+    background: #5a67d8;
+    color: white;
+    padding: 16px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f7f8fc;
+  }
+
+  .message {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .user {
+    background: #667eea;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 6px;
+  }
+
+  .bot {
+    background: white;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px;
+    background: #f1f2f6;
+  }
+
+  .input-area {
+    display: flex;
+    padding: 12px;
+    gap: 8px;
+    border-top: 1px solid #ddd;
+  }
+
+  input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 22px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 14px;
+  }
+
+  button {
+    border: none;
+    padding: 12px 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: #667eea;
+    color: white;
+    font-size: 16px;
+  }
+
+  button:hover {
+    opacity: 0.9;
+  }
+
+  /* ===== DESKTOP / LAPTOP VIEW ===== */
+  @media (min-width: 900px) {
+    body {
+      justify-content: center;
+      align-items: stretch;
+      padding: 40px;
+    }
+
+    .chat-container {
+      max-width: 900px;     /* WIDE on laptop */
+      height: 85vh;
+      border-radius: 20px;
+    }
+
+    .messages {
+      padding: 24px 80px;  /* breathing space */
+    }
+
+    .message {
+      max-width: 60%;
+      font-size: 16px;
+    }
+  }
+</style>
+
 </head>
+
 <body>
 
-  <h2>AI Chatbot</h2>
+<div class="chat-container">
+  <div class="header">🤖 NEXA AI</div>
 
-  <input id="msg" placeholder="Type or speak..." />
-  <button onclick="send()">Send</button>
-  <button onclick="startVoice()">🎤 Speak</button>
+  <div class="messages" id="messages"></div>
 
-  <br><br>
+  <div class="controls">
+    <button onclick="startVoice()">🎤</button>
+    <button onclick="pauseSpeech()">⏸</button>
+    <button onclick="resumeSpeech()">▶</button>
+    <button onclick="stopSpeech()">⏹</button>
+  </div>
 
-  <button onclick="pauseSpeech()">⏸ Pause</button>
-  <button onclick="resumeSpeech()">▶ Resume</button>
-  <button onclick="stopSpeech()">⏹ Stop</button>
+  <div class="input-area">
+    <input id="msg" placeholder="Type or speak..." />
+    <button onclick="send()">➤</button>
+  </div>
+</div>
 
-  <p id="reply"></p>
+<script>
+  window.onload = () => speechSynthesis.cancel();
 
-  <script>
-    // Stop any speech on page load / reload
-    window.onload = () => {
-      window.speechSynthesis.cancel();
+  const messagesDiv = document.getElementById("messages");
+  let utterance;
+
+  function addMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = `message ${type}`;
+    div.innerText = text;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  async function send(textFromVoice = null) {
+    const input = document.getElementById("msg");
+    const message = textFromVoice || input.value;
+    if (!message) return;
+
+    addMessage(message, "user");
+    input.value = "";
+    stopSpeech();
+
+    const res = await fetch("http://localhost:5000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await res.json();
+    addMessage(data.reply, "bot");
+    speak(data.reply);
+  }
+
+  function startVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return alert("Voice not supported");
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = e => {
+      const text = e.results[0][0].transcript;
+      send(text);
     };
+  }
 
-    async function send(textFromVoice = null) {
-      const message =
-        textFromVoice || document.getElementById("msg").value;
+  function speak(text) {
+    utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utterance);
+  }
 
-      if (!message) return;
-
-      stopSpeech(); // stop previous speech
-
-      const res = await fetch("http://localhost:5000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
-
-      const data = await res.json();
-      document.getElementById("reply").innerText = data.reply;
-
-      speak(data.reply);
-    }
-
-    function startVoice() {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        alert("Speech Recognition not supported in this browser.");
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.start();
-
-      recognition.onresult = function (event) {
-        const spokenText = event.results[0][0].transcript;
-        document.getElementById("msg").value = spokenText;
-        send(spokenText);
-      };
-    }
-
-    let utterance;
-
-    function speak(text) {
-      utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function pauseSpeech() {
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.pause();
-      }
-    }
-
-    function resumeSpeech() {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      }
-    }
-
-    function stopSpeech() {
-      window.speechSynthesis.cancel();
-    }
-  </script>
+  function pauseSpeech() { speechSynthesis.pause(); }
+  function resumeSpeech() { speechSynthesis.resume(); }
+  function stopSpeech() { speechSynthesis.cancel(); }
+</script>
 
 </body>
 </html>

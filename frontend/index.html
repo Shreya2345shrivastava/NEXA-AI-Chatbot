@@ -20,10 +20,9 @@
     align-items: center;
   }
 
-  /* ===== MAIN CHAT CONTAINER ===== */
   .chat-container {
     width: 100%;
-    max-width: 420px;          /* mobile default */
+    max-width: 420px;
     height: 90vh;
     background: #ffffff;
     border-radius: 18px;
@@ -110,22 +109,19 @@
     opacity: 0.9;
   }
 
-  /* ===== DESKTOP / LAPTOP VIEW ===== */
   @media (min-width: 900px) {
     body {
-      justify-content: center;
-      align-items: stretch;
       padding: 40px;
+      align-items: stretch;
     }
 
     .chat-container {
-      max-width: 900px;     /* WIDE on laptop */
+      max-width: 900px;
       height: 85vh;
-      border-radius: 20px;
     }
 
     .messages {
-      padding: 24px 80px;  /* breathing space */
+      padding: 24px 80px;
     }
 
     .message {
@@ -134,7 +130,6 @@
     }
   }
 </style>
-
 </head>
 
 <body>
@@ -158,6 +153,9 @@
 </div>
 
 <script>
+  // 🔑 flag to control speaking
+  let shouldSpeak = false;
+
   window.onload = () => speechSynthesis.cancel();
 
   const messagesDiv = document.getElementById("messages");
@@ -188,18 +186,30 @@
 
     const data = await res.json();
     addMessage(data.reply, "bot");
-    speak(data.reply);
+
+    // ✅ speak ONLY if message came from voice
+    if (shouldSpeak) {
+      speak(data.reply);
+      shouldSpeak = false; // reset
+    }
   }
 
   function startVoice() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("Voice not supported");
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Voice not supported");
+      return;
+    }
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
+
+    shouldSpeak = true; // 🔑 enable speaking
     recognition.start();
 
-    recognition.onresult = e => {
+    recognition.onresult = (e) => {
       const text = e.results[0][0].transcript;
       send(text);
     };

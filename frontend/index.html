@@ -6,152 +6,159 @@
 <title>NEXA AI</title>
 
 <style>
-  * {
-    box-sizing: border-box;
-    font-family: "Inter", "Segoe UI", sans-serif;
-  }
+* {
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
 
-  body {
-    margin: 0;
-    height: 100vh;
-    background: #0f1115;
-    color: #e5e7eb;
-  }
+body {
+  margin: 0;
+  height: 100vh;
+  background: #0f1115;
+  color: #e5e7eb;
+}
 
-  /* ===== APP LAYOUT ===== */
-  .app {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-  }
+.app {
+  display: flex;
+  height: 100vh;
+}
 
-  /* ===== SIDEBAR ===== */
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  background: #0b0d11;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1f2228;
+}
+
+.sidebar h2 {
+  margin: 0 0 16px;
+}
+
+.sidebar button {
+  background: #1f2228;
+  border: none;
+  color: #e5e7eb;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.sidebar button:hover {
+  background: #2a2d34;
+}
+
+.history-item {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.history-item:hover {
+  background: #1f2228;
+}
+
+.history-active {
+  background: #2a2d34;
+}
+
+.hint {
+  margin-top: auto;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* CHAT */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 16px;
+  border-bottom: 1px solid #2a2d34;
+  font-weight: 600;
+}
+
+.header span {
+  display: block;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.messages {
+  flex: 1;
+  padding: 24px 120px;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 60%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 15px;
+}
+
+.user {
+  background: #2f333b;
+  margin-left: auto;
+}
+
+.bot {
+  background: #1f2228;
+  border: 1px solid #2a2d34;
+}
+
+/* INPUT */
+.input-area {
+  display: flex;
+  padding: 16px;
+  gap: 10px;
+  border-top: 1px solid #2a2d34;
+}
+
+input {
+  flex: 1;
+  background: #0f1115;
+  border: 1px solid #2a2d34;
+  color: #e5e7eb;
+  padding: 14px;
+  border-radius: 10px;
+  outline: none;
+}
+
+button.send,
+button.mic {
+  background: #2a2d34;
+  border: none;
+  color: #e5e7eb;
+  padding: 14px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3a3f47;
+}
+
+@media (max-width: 900px) {
   .sidebar {
-    width: 240px;
-    background: #0b0d11;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #1f2228;
+    display: none;
   }
-
-  .sidebar h2 {
-    margin: 0 0 20px;
-    font-size: 18px;
-  }
-
-  .sidebar button {
-    background: #1f2228;
-    border: none;
-    color: #e5e7eb;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
-
-  .sidebar button:hover {
-    background: #2a2d34;
-  }
-
-  .hint {
-    margin-top: auto;
-    font-size: 12px;
-    color: #9ca3af;
-    line-height: 1.6;
-  }
-
-  /* ===== MAIN CHAT ===== */
-  .chat-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #16181d;
-  }
-
-  .header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #2a2d34;
-    font-weight: 600;
-  }
-
-  .header span {
-    display: block;
-    font-size: 12px;
-    color: #9ca3af;
-  }
-
   .messages {
-    flex: 1;
-    padding: 24px 120px;
-    overflow-y: auto;
+    padding: 20px;
   }
-
   .message {
-    max-width: 60%;
-    padding: 14px 18px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    line-height: 1.6;
+    max-width: 85%;
   }
-
-  .user {
-    background: #2f333b;
-    margin-left: auto;
-  }
-
-  .bot {
-    background: #1f2228;
-    border: 1px solid #2a2d34;
-  }
-
-  /* ===== INPUT ===== */
-  .input-area {
-    display: flex;
-    padding: 16px;
-    gap: 10px;
-    border-top: 1px solid #2a2d34;
-  }
-
-  input {
-    flex: 1;
-    background: #0f1115;
-    border: 1px solid #2a2d34;
-    color: #e5e7eb;
-    padding: 14px;
-    border-radius: 10px;
-    outline: none;
-  }
-
-  button.send,
-  button.mic {
-    background: #2a2d34;
-    border: none;
-    color: #e5e7eb;
-    padding: 14px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: #3a3f47;
-  }
-
-  /* ===== MOBILE ===== */
-  @media (max-width: 900px) {
-    .sidebar {
-      display: none;
-    }
-
-    .messages {
-      padding: 20px;
-    }
-
-    .message {
-      max-width: 85%;
-    }
-  }
+}
 </style>
 </head>
 
@@ -162,7 +169,8 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>NEXA</h2>
-    <button onclick="clearChat()">+ New Chat</button>
+    <button onclick="newChat()">+ New Chat</button>
+    <div id="history"></div>
 
     <div class="hint">
       ⌨️ Enter → Send<br>
@@ -190,95 +198,162 @@
 </div>
 
 <script>
-  let shouldSpeak = false;
-  let recognition;
+let shouldSpeak = false;
+let recognition;
 
-  speechSynthesis.onvoiceschanged = () => {
-    speechSynthesis.getVoices();
-  };
+let conversations = JSON.parse(localStorage.getItem("nexaChats")) || [];
+let currentChatId = null;
 
-  const messagesDiv = document.getElementById("messages");
+const messagesDiv = document.getElementById("messages");
 
-  function addMessage(text, type) {
-    const div = document.createElement("div");
-    div.className = `message ${type}`;
-    div.innerText = text;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
+/* SAVE */
+function saveChats() {
+  localStorage.setItem("nexaChats", JSON.stringify(conversations));
+}
 
-  async function send(textFromVoice = null) {
-    const input = document.getElementById("msg");
-    const message = textFromVoice || input.value;
-    if (!message) return;
+/* RENDER HISTORY */
+function renderHistory() {
+  const historyDiv = document.getElementById("history");
+  historyDiv.innerHTML = "";
 
-    addMessage(message, "user");
-    input.value = "";
-
-    const res = await fetch("http://localhost:5000/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
-    });
-
-    const data = await res.json();
-    addMessage(data.reply, "bot");
-
-    if (shouldSpeak) {
-      speak(data.reply);
-      shouldSpeak = false;
-    }
-  }
-
-  function toggleVoice() {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) return alert("Voice not supported");
-
-    shouldSpeak = true;
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.start();
-
-    recognition.onresult = e => {
-      const text = e.results[0][0].transcript;
-      send(text);
-    };
-  }
-
-  function speak(text) {
-    const speechText = text
-      .replace(/\bNEXA\b/g, "Nexa")
-      .replace(/\bAI\b/g, "A I");
-
-    const voices = speechSynthesis.getVoices();
-    const femaleVoice = voices.find(v =>
-      v.name.toLowerCase().includes("zira") ||
-      v.name.toLowerCase().includes("samantha") ||
-      v.name.toLowerCase().includes("female")
-    );
-
-    const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.lang = "en-US";
-    if (femaleVoice) utterance.voice = femaleVoice;
-    utterance.pitch = 1.1;
-    utterance.rate = 1.0;
-
-    speechSynthesis.speak(utterance);
-  }
-
-  function clearChat() {
-    messagesDiv.innerHTML = "";
-    speechSynthesis.cancel();
-  }
-
-  /* KEYBOARD SHORTCUTS */
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") send();
-    if (e.ctrlKey && e.key.toLowerCase() === "m") toggleVoice();
-    if (e.key === "Escape") speechSynthesis.cancel();
+  conversations.forEach(chat => {
+    const item = document.createElement("div");
+    item.className = "history-item" + 
+      (chat.id === currentChatId ? " history-active" : "");
+    item.innerText = chat.title;
+    item.onclick = () => loadChat(chat.id);
+    historyDiv.appendChild(item);
   });
+}
+
+/* NEW CHAT */
+function newChat() {
+  const id = Date.now();
+  const chat = { id, title: "New Chat", messages: [] };
+  conversations.unshift(chat);
+  currentChatId = id;
+  messagesDiv.innerHTML = "";
+  saveChats();
+  renderHistory();
+}
+
+/* LOAD CHAT */
+function loadChat(id) {
+  currentChatId = id;
+  messagesDiv.innerHTML = "";
+
+  const chat = conversations.find(c => c.id === id);
+  if (!chat) return;
+
+  chat.messages.forEach(m => {
+    const div = document.createElement("div");
+    div.className = `message ${m.role}`;
+    div.innerText = m.content;
+    messagesDiv.appendChild(div);
+  });
+
+  renderHistory();
+}
+
+/* ADD MESSAGE */
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = `message ${type}`;
+  div.innerText = text;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  if (!currentChatId) return;
+
+  const chat = conversations.find(c => c.id === currentChatId);
+  chat.messages.push({ role: type, content: text });
+
+  if (chat.title === "New Chat" && type === "user") {
+    chat.title = text.slice(0, 25);
+  }
+
+  saveChats();
+  renderHistory();
+}
+
+/* SEND */
+async function send(textFromVoice = null) {
+  const input = document.getElementById("msg");
+  const message = textFromVoice || input.value;
+  if (!message) return;
+
+  addMessage(message, "user");
+  input.value = "";
+
+  const res = await fetch("http://localhost:5000/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await res.json();
+  addMessage(data.reply, "bot");
+
+  if (shouldSpeak) {
+    speak(data.reply);
+    shouldSpeak = false;
+  }
+}
+
+/* VOICE */
+function toggleVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) return alert("Voice not supported");
+
+  shouldSpeak = true;
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.start();
+
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    send(text);
+  };
+}
+
+function speak(text) {
+  const speechText = text
+    .replace(/\bNEXA\b/g, "Nexa")
+    .replace(/\bAI\b/g, "A I");
+
+  const voices = speechSynthesis.getVoices();
+  const femaleVoice = voices.find(v =>
+    v.name.toLowerCase().includes("zira") ||
+    v.name.toLowerCase().includes("samantha") ||
+    v.name.toLowerCase().includes("female")
+  );
+
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.lang = "en-US";
+  if (femaleVoice) utterance.voice = femaleVoice;
+  utterance.pitch = 1.1;
+  utterance.rate = 1.0;
+
+  speechSynthesis.speak(utterance);
+}
+
+/* KEYBOARD SHORTCUTS */
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") send();
+  if (e.ctrlKey && e.key.toLowerCase() === "m") toggleVoice();
+  if (e.key === "Escape") speechSynthesis.cancel();
+});
+
+/* INIT */
+if (conversations.length > 0) {
+  currentChatId = conversations[0].id;
+  renderHistory();
+  loadChat(currentChatId);
+} else {
+  newChat();
+}
 </script>
 
 </body>

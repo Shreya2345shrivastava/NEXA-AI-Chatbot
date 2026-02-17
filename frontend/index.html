@@ -13,148 +13,137 @@
 
   body {
     margin: 0;
-    min-height: 100vh;
+    height: 100vh;
     background: #0f1115;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    color: #e5e7eb;
   }
 
-  .chat-container {
+  /* ===== APP LAYOUT ===== */
+  .app {
+    display: flex;
+    height: 100vh;
     width: 100%;
-    max-width: 1000px;
-    height: 85vh;
-    background: #16181d;
-    border-radius: 16px;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 240px;
+    background: #0b0d11;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    border-right: 1px solid #1f2228;
+  }
+
+  .sidebar h2 {
+    margin: 0 0 20px;
+    font-size: 18px;
+  }
+
+  .sidebar button {
+    background: #1f2228;
+    border: none;
+    color: #e5e7eb;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .sidebar button:hover {
+    background: #2a2d34;
+  }
+
+  .hint {
+    margin-top: auto;
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  /* ===== MAIN CHAT ===== */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #16181d;
   }
 
   .header {
-    background: #1f2228;
-    color: #e5e7eb;
     padding: 16px 20px;
-    font-size: 18px;
-    font-weight: 600;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-bottom: 1px solid #2a2d34;
+    font-weight: 600;
   }
 
   .header span {
+    display: block;
+    font-size: 12px;
     color: #9ca3af;
-    font-size: 13px;
-    font-weight: 400;
-  }
-
-  .top-actions button {
-    background: transparent;
-    border: 1px solid #2f333b;
-    color: #cbd5f5;
-    padding: 6px 10px;
-    border-radius: 8px;
-    margin-left: 6px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-
-  .top-actions button:hover {
-    background: #2a2d34;
   }
 
   .messages {
     flex: 1;
-    padding: 24px 80px;
+    padding: 24px 120px;
     overflow-y: auto;
-    background: #16181d;
   }
 
   .message {
     max-width: 60%;
     padding: 14px 18px;
-    border-radius: 14px;
-    margin-bottom: 14px;
+    border-radius: 12px;
+    margin-bottom: 16px;
     font-size: 15px;
     line-height: 1.6;
   }
 
   .user {
     background: #2f333b;
-    color: #e5e7eb;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
+    margin-left: auto;
   }
 
   .bot {
     background: #1f2228;
-    color: #d1d5db;
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
     border: 1px solid #2a2d34;
   }
 
-  .controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
-    border-top: 1px solid #2a2d34;
-    background: #1a1d23;
-  }
-
-  .controls button {
-    background: #1f2228;
-    border: 1px solid #2a2d34;
-    color: #d1d5db;
-    padding: 10px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-
-  .controls button:hover {
-    background: #2a2d34;
-  }
-
+  /* ===== INPUT ===== */
   .input-area {
     display: flex;
-    padding: 14px;
+    padding: 16px;
     gap: 10px;
     border-top: 1px solid #2a2d34;
-    background: #16181d;
   }
 
   input {
     flex: 1;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid #2a2d34;
     background: #0f1115;
+    border: 1px solid #2a2d34;
     color: #e5e7eb;
+    padding: 14px;
+    border-radius: 10px;
     outline: none;
-    font-size: 14px;
   }
 
-  input::placeholder {
-    color: #6b7280;
-  }
-
-  button.send {
-    background: #3b3f46;
-    color: #e5e7eb;
+  button.send,
+  button.mic {
+    background: #2a2d34;
     border: none;
-    padding: 14px 18px;
-    border-radius: 12px;
+    color: #e5e7eb;
+    padding: 14px 16px;
+    border-radius: 10px;
     cursor: pointer;
   }
 
-  button.send:hover {
-    background: #4b4f57;
+  button:hover {
+    background: #3a3f47;
   }
 
+  /* ===== MOBILE ===== */
   @media (max-width: 900px) {
+    .sidebar {
+      display: none;
+    }
+
     .messages {
       padding: 20px;
     }
@@ -164,62 +153,51 @@
     }
   }
 </style>
-
 </head>
 
 <body>
 
-<div class="chat-container">
+<div class="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      🤖 <strong>NEXA AI</strong>
-      <span style="display:block;font-size:12px;color:#9ca3af;">
-        Professional Assistant
-      </span>
-    </div>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>NEXA</h2>
+    <button onclick="clearChat()">+ New Chat</button>
 
-    <div class="top-actions">
-      <button onclick="clearChat()">Clear</button>
-      <button onclick="downloadChat()">Export</button>
-      <button onclick="stopSpeech()">Mute</button>
+    <div class="hint">
+      ⌨️ Enter → Send<br>
+      🎤 Ctrl + M → Voice<br>
+      ⎋ Esc → Stop voice
     </div>
   </div>
 
-  <!-- CHAT MESSAGES -->
-  <div class="messages" id="messages"></div>
+  <!-- CHAT -->
+  <div class="chat-container">
+    <div class="header">
+      🤖 NEXA AI
+      <span>Professional Assistant</span>
+    </div>
 
-  <!-- VOICE CONTROLS -->
-  <div class="controls">
-    <button title="Speak" onclick="startVoice()">🎤</button>
-    <button title="Pause Voice" onclick="pauseSpeech()">⏸</button>
-    <button title="Resume Voice" onclick="resumeSpeech()">▶</button>
-    <button title="Stop Voice" onclick="stopSpeech()">⏹</button>
-  </div>
+    <div class="messages" id="messages"></div>
 
-  <!-- INPUT AREA -->
-  <div class="input-area">
-    <input id="msg" placeholder="Type your message…" />
-    <button class="send" onclick="send()">Send</button>
+    <div class="input-area">
+      <input id="msg" placeholder="Message NEXA…" />
+      <button class="mic" onclick="toggleVoice()">🎤</button>
+      <button class="send" onclick="send()">➤</button>
+    </div>
   </div>
 
 </div>
 
-
 <script>
-  
   let shouldSpeak = false;
+  let recognition;
 
   speechSynthesis.onvoiceschanged = () => {
-  speechSynthesis.getVoices();
-};
-
-
-  window.onload = () => speechSynthesis.cancel();
+    speechSynthesis.getVoices();
+  };
 
   const messagesDiv = document.getElementById("messages");
-  let utterance;
 
   function addMessage(text, type) {
     const div = document.createElement("div");
@@ -236,7 +214,6 @@
 
     addMessage(message, "user");
     input.value = "";
-    stopSpeech();
 
     const res = await fetch("http://localhost:5000/chat", {
       method: "POST",
@@ -247,84 +224,61 @@
     const data = await res.json();
     addMessage(data.reply, "bot");
 
-    
     if (shouldSpeak) {
       speak(data.reply);
-      shouldSpeak = false; 
+      shouldSpeak = false;
     }
   }
 
-  function startVoice() {
+  function toggleVoice() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-      alert("Voice not supported");
-      return;
-    }
+    if (!SpeechRecognition) return alert("Voice not supported");
 
-    const recognition = new SpeechRecognition();
+    shouldSpeak = true;
+    recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-
-    shouldSpeak = true; 
     recognition.start();
 
-    recognition.onresult = (e) => {
+    recognition.onresult = e => {
       const text = e.results[0][0].transcript;
       send(text);
     };
   }
 
-function speak(text) {
-  
-  const speechText = text
-    .replace(/\bNEXA\b/g, "Nexa")  
-    .replace(/\bAI\b/g, "A I");     
+  function speak(text) {
+    const speechText = text
+      .replace(/\bNEXA\b/g, "Nexa")
+      .replace(/\bAI\b/g, "A I");
 
-  const voices = speechSynthesis.getVoices();
+    const voices = speechSynthesis.getVoices();
+    const femaleVoice = voices.find(v =>
+      v.name.toLowerCase().includes("zira") ||
+      v.name.toLowerCase().includes("samantha") ||
+      v.name.toLowerCase().includes("female")
+    );
 
-  const femaleVoice = voices.find(v =>
-    v.name.toLowerCase().includes("zira") ||
-    v.name.toLowerCase().includes("samantha") ||
-    v.name.toLowerCase().includes("female")
-  );
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    utterance.lang = "en-US";
+    if (femaleVoice) utterance.voice = femaleVoice;
+    utterance.pitch = 1.1;
+    utterance.rate = 1.0;
 
-  utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.lang = "en-US";
-
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
+    speechSynthesis.speak(utterance);
   }
 
-  utterance.pitch = 1.1;
-  utterance.rate = 1.0;
-
-  speechSynthesis.speak(utterance);
-}
-
-
-
-  function pauseSpeech() { speechSynthesis.pause(); }
-  function resumeSpeech() { speechSynthesis.resume(); }
-  function stopSpeech() { speechSynthesis.cancel(); }
-
   function clearChat() {
-  messagesDiv.innerHTML = "";
-  stopSpeech();
-}
+    messagesDiv.innerHTML = "";
+    speechSynthesis.cancel();
+  }
 
-function downloadChat() {
-  const text = Array.from(document.querySelectorAll(".message"))
-    .map(m => m.innerText)
-    .join("\n\n");
-
-  const blob = new Blob([text], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "nexa-chat.txt";
-  a.click();
-}
-
+  /* KEYBOARD SHORTCUTS */
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") send();
+    if (e.ctrlKey && e.key.toLowerCase() === "m") toggleVoice();
+    if (e.key === "Escape") speechSynthesis.cancel();
+  });
 </script>
 
 </body>

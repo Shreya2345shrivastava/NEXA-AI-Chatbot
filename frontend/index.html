@@ -57,6 +57,9 @@ body {
   margin-bottom: 6px;
   cursor: pointer;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .history-item:hover {
@@ -65,6 +68,23 @@ body {
 
 .history-active {
   background: #2a2d34;
+}
+
+.history-title {
+  flex: 1;
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-btn {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.delete-btn:hover {
+  opacity: 1;
 }
 
 .hint {
@@ -147,18 +167,6 @@ button.mic {
 button:hover {
   background: #3a3f47;
 }
-
-@media (max-width: 900px) {
-  .sidebar {
-    display: none;
-  }
-  .messages {
-    padding: 20px;
-  }
-  .message {
-    max-width: 85%;
-  }
-}
 </style>
 </head>
 
@@ -166,12 +174,10 @@ button:hover {
 
 <div class="app">
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>NEXA</h2>
     <button onclick="newChat()">+ New Chat</button>
     <div id="history"></div>
-
     <div class="hint">
       ⌨️ Enter → Send<br>
       🎤 Ctrl + M → Voice<br>
@@ -179,7 +185,6 @@ button:hover {
     </div>
   </div>
 
-  <!-- CHAT -->
   <div class="chat-container">
     <div class="header">
       🤖 NEXA AI
@@ -198,6 +203,8 @@ button:hover {
 </div>
 
 <script>
+let focusActive = false;
+let focusTimer = null;
 let shouldSpeak = false;
 let recognition;
 
@@ -211,17 +218,28 @@ function saveChats() {
   localStorage.setItem("nexaChats", JSON.stringify(conversations));
 }
 
-/* RENDER HISTORY */
+/* HISTORY */
 function renderHistory() {
   const historyDiv = document.getElementById("history");
   historyDiv.innerHTML = "";
 
   conversations.forEach(chat => {
     const item = document.createElement("div");
-    item.className = "history-item" + 
-      (chat.id === currentChatId ? " history-active" : "");
-    item.innerText = chat.title;
+    item.className = "history-item" + (chat.id === currentChatId ? " history-active" : "");
+
+    const title = document.createElement("span");
+    title.className = "history-title";
+    title.innerText = chat.title;
+    title.ondblclick = () => renameChat(chat.id, title);
+
+    const del = document.createElement("span");
+    del.className = "delete-btn";
+    del.innerText = "🗑️";
+    del.onclick = e => { e.stopPropagation(); deleteChat(chat.id); };
+
     item.onclick = () => loadChat(chat.id);
+    item.appendChild(title);
+    item.appendChild(del);
     historyDiv.appendChild(item);
   });
 }
@@ -229,55 +247,65 @@ function renderHistory() {
 /* NEW CHAT */
 function newChat() {
   const id = Date.now();
-  const chat = { id, title: "New Chat", messages: [] };
-  conversations.unshift(chat);
+  conversations.unshift({ id, title: "New Chat", messages: [] });
   currentChatId = id;
   messagesDiv.innerHTML = "";
   saveChats();
   renderHistory();
 }
 
-/* LOAD CHAT */
+/* DELETE */
+function deleteChat(id) {
+  conversations = conversations.filter(c => c.id !== id);
+  if (!conversations.length) return newChat();
+  currentChatId = conversations[0].id;
+  loadChat(currentChatId);
+}
+
+/* RENAME */
+function renameChat(id, span) {
+  const chat = conversations.find(c => c.id === id);
+  const input = document.createElement("input");
+  input.value = chat.title;
+  span.replaceWith(input);
+  input.focus();
+  input.onblur = () => {
+    chat.title = input.value || "Untitled Chat";
+    saveChats();
+    renderHistory();
+  };
+}
+
+/* LOAD */
 function loadChat(id) {
   currentChatId = id;
   messagesDiv.innerHTML = "";
-
   const chat = conversations.find(c => c.id === id);
-  if (!chat) return;
-
-  chat.messages.forEach(m => {
-    const div = document.createElement("div");
-    div.className = `message ${m.role}`;
-    div.innerText = m.content;
-    messagesDiv.appendChild(div);
-  });
-
+  chat.messages.forEach(m => addMessage(m.content, m.role, false));
   renderHistory();
 }
 
 /* ADD MESSAGE */
-function addMessage(text, type) {
+function addMessage(text, type, save = true) {
   const div = document.createElement("div");
   div.className = `message ${type}`;
   div.innerText = text;
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-  if (!currentChatId) return;
-
-  const chat = conversations.find(c => c.id === currentChatId);
-  chat.messages.push({ role: type, content: text });
-
-  if (chat.title === "New Chat" && type === "user") {
-    chat.title = text.slice(0, 25);
+  if (save) {
+    const chat = conversations.find(c => c.id === currentChatId);
+    chat.messages.push({ role: type, content: text });
+    if (chat.title === "New Chat" && type === "user") chat.title = text.slice(0, 25);
+    saveChats();
+    renderHistory();
   }
-
-  saveChats();
-  renderHistory();
 }
 
-/* SEND */
+/* SEND (FIXED) */
 async function send(textFromVoice = null) {
+  if (focusActive) return;
+
   const input = document.getElementById("msg");
   const message = textFromVoice || input.value;
   if (!message) return;
@@ -294,66 +322,35 @@ async function send(textFromVoice = null) {
   const data = await res.json();
   addMessage(data.reply, "bot");
 
-  if (shouldSpeak) {
-    speak(data.reply);
-    shouldSpeak = false;
-  }
+  if (data.focusMode) startFocusMode(data.duration);
 }
 
 /* VOICE */
 function toggleVoice() {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) return alert("Voice not supported");
-
-  shouldSpeak = true;
-  recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return alert("Voice not supported");
+  recognition = new SR();
   recognition.start();
-
-  recognition.onresult = e => {
-    const text = e.results[0][0].transcript;
-    send(text);
-  };
+  recognition.onresult = e => send(e.results[0][0].transcript);
 }
 
-function speak(text) {
-  const speechText = text
-    .replace(/\bNEXA\b/g, "Nexa")
-    .replace(/\bAI\b/g, "A I");
+/* FOCUS MODE */
+function startFocusMode(minutes) {
+  focusActive = true;
+  const input = document.getElementById("msg");
+  input.disabled = true;
+  input.placeholder = "Focus mode active…";
 
-  const voices = speechSynthesis.getVoices();
-  const femaleVoice = voices.find(v =>
-    v.name.toLowerCase().includes("zira") ||
-    v.name.toLowerCase().includes("samantha") ||
-    v.name.toLowerCase().includes("female")
-  );
-
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.lang = "en-US";
-  if (femaleVoice) utterance.voice = femaleVoice;
-  utterance.pitch = 1.1;
-  utterance.rate = 1.0;
-
-  speechSynthesis.speak(utterance);
+  setTimeout(() => {
+    focusActive = false;
+    input.disabled = false;
+    input.placeholder = "Message NEXA…";
+    addMessage("⏰ Focus complete 🌱", "bot");
+  }, minutes * 60000);
 }
-
-/* KEYBOARD SHORTCUTS */
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") send();
-  if (e.ctrlKey && e.key.toLowerCase() === "m") toggleVoice();
-  if (e.key === "Escape") speechSynthesis.cancel();
-});
 
 /* INIT */
-if (conversations.length > 0) {
-  currentChatId = conversations[0].id;
-  renderHistory();
-  loadChat(currentChatId);
-} else {
-  newChat();
-}
+conversations.length ? loadChat(conversations[0].id) : newChat();
 </script>
 
 </body>

@@ -93,11 +93,138 @@ body {
   color: #9ca3af;
 }
 
+/* EMOTION TIMELINE */
+.emotion-timeline {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #1f2228;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.timeline-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.timeline-bars {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 20px;
+}
+
+.timeline-bar {
+  flex: 1;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  cursor: help;
+  min-height: 4px;
+}
+
+.timeline-bar:hover {
+  opacity: 1;
+}
+
+.bar-neutral { background: #6b7280; }
+.bar-calm { background: #10b981; }
+.bar-anxiety { background: #f59e0b; }
+.bar-sadness { background: #3b82f6; }
+.bar-positive { background: #22c55e; }
+.bar-anger { background: #ef4444; }
+
+/* MODE INDICATORS */
+.mode-indicators {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.mode-indicator {
+  background: #1f2228;
+  padding: 4px 8px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #2a2d34;
+}
+
+.mode-indicator.safe-word {
+  background: #dc2626;
+  border-color: #991b1b;
+  color: #fff;
+}
+
+.mode-indicator.silent-mode {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #94a3b8;
+}
+
+.mode-indicator.one-sentence {
+  background: #7c3aed;
+  border-color: #5b21b6;
+  color: #fff;
+}
+
+.mode-indicator.distortion-detected {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #000;
+}
+
 /* CHAT */
 .chat-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200%;
+  height: 200%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  transition: all 0.8s ease-in-out;
+  filter: blur(80px);
+}
+
+/* EMOTION GLOW EFFECTS - RADIAL GRADIENTS */
+.chat-container.glow-neutral::before {
+  background: radial-gradient(circle, rgba(107, 114, 128, 0.3) 0%, rgba(55, 65, 81, 0.1) 40%, transparent 70%);
+}
+
+.chat-container.glow-sadness::before {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, rgba(30, 58, 138, 0.15) 40%, transparent 70%);
+}
+
+.chat-container.glow-anxiety::before {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(88, 28, 135, 0.15) 40%, transparent 70%);
+}
+
+.chat-container.glow-positive::before {
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, rgba(5, 100, 46, 0.15) 40%, transparent 70%);
+}
+
+.chat-container.glow-anger::before {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.35) 0%, rgba(127, 29, 29, 0.15) 40%, transparent 70%);
+}
+
+.chat-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 .header {
@@ -203,46 +330,37 @@ button:hover {
   background: #2a2d34;
 }
 
-/* EMOTION INDICATOR */
+/* EMOTION PILL */
 .emotion-pill {
+  border: none;
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  cursor: default;
+  transition: all 0.3s ease;
 }
 
-.emotion-neutral {
-  background: #374151;
-  color: #d1d5db;
+.emotion-pill.neutral { background: #2a2d34; color: #e5e7eb; }
+.emotion-pill.anxiety { background: #facc15; color: #000; }
+.emotion-pill.sadness { background: #64748b; color: #e5e7eb; }
+.emotion-pill.positive { background: #22c55e; color: #000; }
+.emotion-pill.anger { background: #ef4444; color: #e5e7eb; }
+
+/* LEGACY EMOTION CLASSES (kept for compatibility) */
+.chat-container.emotion-anxiety {
+  /* glow applied via glow-anxiety class */
 }
 
-.emotion-calm {
-  background: #10b981;
-  color: #ecfdf5;
+.chat-container.emotion-sadness {
+  /* glow applied via glow-sadness class */
 }
 
-.emotion-anxiety {
-  background: #f59e0b;
-  color: #fffbeb;
+.chat-container.emotion-positive {
+  /* glow applied via glow-positive class */
 }
 
-.emotion-sadness {
-  background: #3b82f6;
-  color: #eff6ff;
-}
-
-.emotion-positive {
-  background: #34d399;
-  color: #ecfdf5;
-}
-
-.emotion-anger {
-  background: #ef4444;
-  color: #fef2f2;
+.chat-container.emotion-anger {
+  /* glow applied via glow-anger class */
 }
 </style>
 </head>
@@ -255,6 +373,10 @@ button:hover {
     <h2>NEXA</h2>
     <button onclick="newChat()">+ New Chat</button>
     <div id="history"></div>
+    <div class="emotion-timeline">
+      <span class="timeline-label">📈 Your Mood</span>
+      <div class="timeline-bars" id="timelineChart"></div>
+    </div>
     <div class="hint">
       ⌨️ Enter → Send<br>
       🎤 Ctrl + M → Voice<br>
@@ -276,10 +398,9 @@ button:hover {
           <option value="supportive">🤍 Supportive</option>
           <option value="focus">🎯 Focus Coach</option>
         </select>
-        <div id="emotionPill" class="emotion-pill emotion-neutral" aria-label="Current emotion: Neutral">
-          😐 Neutral
-        </div>
+        <div id="emotionPill" class="emotion-pill neutral">🙂 Neutral</div>
       </div>
+      <div class="mode-indicators" id="modeIndicators"></div>
     </div>
 
     <div class="messages" id="messages"></div>
@@ -300,6 +421,12 @@ let shouldSpeak = false;
 let recognition;
 let voiceInputActive = false;
 let currentEmotion = "neutral";
+let messageCountInChat = 0;
+let lastEmotionCheckAt = 0;
+let emotionHistory = [];
+let silentModeActive = false;
+let safeWordSet = false;
+let lastDistortionDetected = null;
 
 let conversations = JSON.parse(localStorage.getItem("nexaChats")) || [];
 let currentChatId = null;
@@ -416,11 +543,53 @@ async function send(textFromVoice = null) {
 
   const data = await res.json();
   addMessage(data.reply, "bot");
+  
+  // Update mode indicators
+  updateModeIndicators(data);
 
-  if (data.emotion) updateEmotionPill(data.emotion);
+  // Handle distortion detection
+  if (data.distortionDetected) {
+    lastDistortionDetected = data.distortionLabel;
+  }
+
+  // Update emotion UI and timeline
+  if (data.emotion) {
+    updateEmotionUI(data.emotion);
+    emotionHistory.push({ emotion: data.emotion, timestamp: new Date() });
+    if (emotionHistory.length > 20) emotionHistory.shift();
+    renderEmotionTimeline();
+  }
+  
+  // Handle safe word setup
+  if (data.safeWordSet) {
+    safeWordSet = true;
+  }
+  
+  // Handle silent mode changes
+  if (data.silentModeEnabled) {
+    silentModeActive = true;
+  }
+  if (data.silentModeDisabled) {
+    silentModeActive = false;
+  }
+
+  // Emotional check-in prompt (after 5-7 messages) - but NOT in silent mode
+  if (!silentModeActive && !data.silentMode) {
+    messageCountInChat++;
+    if (messageCountInChat >= 6 && Date.now() - lastEmotionCheckAt > 60000) {
+      setTimeout(() => {
+        addMessage("🤔 How are you feeling right now — same, better, or worse than before?", "bot", false);
+      }, 2000);
+      lastEmotionCheckAt = Date.now();
+    }
+  }
+
+  // Voice: Don't speak if safe word triggered or silent mode
   if (voiceInputActive) {
     voiceInputActive = false;
-    speakBotReply(data.reply, data.emotion);
+    if (!data.safeWordTriggered && !data.silentMode) {
+      speakBotReply(data.reply, data.emotion);
+    }
   }
   if (data.focusMode) startFocusMode(data.duration);
 }
@@ -451,6 +620,30 @@ function adjustVoiceByEmotion(emotion, utterance) {
   utterance.rate = settings.rate;
 }
 
+/* UPDATE MODE INDICATORS */
+function updateModeIndicators(data) {
+  const indicatorsDiv = document.getElementById("modeIndicators");
+  const indicators = [];
+
+  if (data.silentMode || silentModeActive) {
+    indicators.push('<div class="mode-indicator silent-mode">🤍 Silent Mode</div>');
+  }
+
+  if (data.isOverwhelmed) {
+    indicators.push('<div class="mode-indicator one-sentence">💬 One-Sentence Mode</div>');
+  }
+
+  if (data.distortionDetected) {
+    indicators.push(`<div class="mode-indicator distortion-detected" title="${data.distortionLabel}">🧠 ${data.distortionLabel}</div>`);
+  }
+
+  if (data.safeWordTriggered) {
+    indicators.push('<div class="mode-indicator safe-word">🔐 Safe Word Active</div>');
+  }
+
+  indicatorsDiv.innerHTML = indicators.join("");
+}
+
 /* SPEAK BOT REPLY */
 function speakBotReply(text, emotion) {
   if (!window.speechSynthesis) return;
@@ -460,22 +653,54 @@ function speakBotReply(text, emotion) {
   window.speechSynthesis.speak(utterance);
 }
 
+/* EMOTION UI UPDATE */
+function updateEmotionUI(emotion) {
+  const pill = document.getElementById("emotionPill");
+  const chat = document.querySelector(".chat-container");
+
+  if (!pill || !chat) return;
+
+  const labels = {
+    anxiety: "😟 Anxiety",
+    sadness: "🌧️ Sadness",
+    positive: "😊 Positive",
+    anger: "🔥 Anger",
+    neutral: "🙂 Neutral"
+  };
+
+  // Reset all glow and emotion classes
+  pill.className = "emotion-pill";
+  chat.classList.remove("emotion-anxiety", "emotion-sadness", "emotion-positive", "emotion-anger");
+  chat.classList.remove("glow-anxiety", "glow-sadness", "glow-positive", "glow-anger", "glow-neutral");
+
+  // Apply emotion pill class
+  pill.classList.add(emotion || "neutral");
+  
+  // Apply emotion and glow classes to chat container
+  if (emotion && emotion !== "neutral") {
+    chat.classList.add(`emotion-${emotion}`);
+    chat.classList.add(`glow-${emotion}`);
+  } else {
+    chat.classList.add("glow-neutral");
+  }
+  
+  pill.innerText = labels[emotion] || "🙂 Neutral";
+}
+
 /* EMOTION PILL UPDATE */
 function updateEmotionPill(emotion) {
-  currentEmotion = emotion || "neutral";
-  const emotionMap = {
-    neutral: { emoji: "😐", label: "Neutral", class: "emotion-neutral" },
-    calm: { emoji: "🌿", label: "Calm", class: "emotion-calm" },
-    anxiety: { emoji: "😟", label: "Anxiety", class: "emotion-anxiety" },
-    sadness: { emoji: "🌧️", label: "Sadness", class: "emotion-sadness" },
-    positive: { emoji: "😊", label: "Positive", class: "emotion-positive" },
-    anger: { emoji: "🔥", label: "Anger", class: "emotion-anger" }
-  };
+  updateEmotionUI(emotion);
+}
+
+/* EMOTION TIMELINE RENDER */
+function renderEmotionTimeline() {
+  const timelineChart = document.getElementById("timelineChart");
+  if (!emotionHistory.length) return;
   
-  const emotionData = emotionMap[currentEmotion] || emotionMap.neutral;
-  emotionPill.innerText = `${emotionData.emoji} ${emotionData.label}`;
-  emotionPill.className = `emotion-pill ${emotionData.class}`;
-  emotionPill.setAttribute("aria-label", `Current emotion: ${emotionData.label}`);
+  timelineChart.innerHTML = emotionHistory.slice(-10).map(e => {
+    const emotionClass = `bar-${e.emotion}`;
+    return `<div class="timeline-bar ${emotionClass}" title="${e.emotion}"></div>`;
+  }).join("");
 }
 
 /* FOCUS MODE */
@@ -495,7 +720,8 @@ function startFocusMode(minutes) {
 
 /* INIT */
 conversations.length ? loadChat(conversations[0].id) : newChat();
-updateEmotionPill("neutral");
+const chatContainer = document.querySelector(".chat-container");
+updateEmotionUI("neutral");
 </script>
 
 </body>

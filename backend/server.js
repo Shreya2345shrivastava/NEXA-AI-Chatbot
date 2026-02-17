@@ -27,10 +27,34 @@ function saveMemory(memories) {
    💬 CHAT ROUTE
 =============================== */
 
+/* ===============================
+   🎭 PERSONALITY DEFINITIONS
+=============================== */
+
+const PERSONALITIES = {
+  calm: {
+    name: "Calm",
+    base: "You are NEXA, a calm, gentle, and reassuring AI assistant. Speak with warmth and patience."
+  },
+  professional: {
+    name: "Professional",
+    base: "You are NEXA, a concise, professional, and structured AI assistant. Be formal, efficient, and to the point."
+  },
+  supportive: {
+    name: "Supportive",
+    base: "You are NEXA, an emotionally empathetic and deeply supportive AI assistant. Validate feelings and show genuine care."
+  },
+  focus: {
+    name: "Focus Coach",
+    base: "You are NEXA, a strict productivity coach. Be direct, action-oriented, and help eliminate distractions."
+  }
+};
+
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message || "";
     const text = userMessage.toLowerCase();
+    const selectedPersonality = req.body.personality || "calm";
 
     let memories = loadMemory();
 
@@ -148,8 +172,7 @@ app.post("/chat", async (req, res) => {
        🎭 SYSTEM PROMPT
     =============================== */
 
-    let systemPrompt =
-      "You are NEXA, a calm, friendly, and helpful AI assistant.";
+    let systemPrompt = PERSONALITIES[selectedPersonality]?.base || PERSONALITIES.calm.base;
 
     if (memories.length > 0) {
       systemPrompt +=
@@ -223,7 +246,8 @@ app.post("/chat", async (req, res) => {
       emotion,
       overthinking,
       voiceMode,
-      memoryCount: memories.length
+      memoryCount: memories.length,
+      personality: selectedPersonality
     });
 
   } catch (error) {

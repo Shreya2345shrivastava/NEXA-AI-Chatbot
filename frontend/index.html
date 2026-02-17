@@ -104,18 +104,27 @@ body {
   padding: 16px;
   border-bottom: 1px solid #2a2d34;
   font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .header span {
-  display: block;
   font-size: 12px;
   color: #9ca3af;
+  margin-top: 4px;
 }
 
 .messages {
   flex: 1;
   padding: 24px 120px;
   overflow-y: auto;
+  margin-top: 0;
 }
 
 .message {
@@ -167,6 +176,74 @@ button.mic {
 button:hover {
   background: #3a3f47;
 }
+
+/* PERSONALITY SELECTOR */
+.personality-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.personality-selector label {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.personality-selector select {
+  background: #1f2228;
+  border: 1px solid #2a2d34;
+  color: #e5e7eb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.personality-selector select:hover {
+  background: #2a2d34;
+}
+
+/* EMOTION INDICATOR */
+.emotion-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.emotion-neutral {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.emotion-calm {
+  background: #10b981;
+  color: #ecfdf5;
+}
+
+.emotion-anxiety {
+  background: #f59e0b;
+  color: #fffbeb;
+}
+
+.emotion-sadness {
+  background: #3b82f6;
+  color: #eff6ff;
+}
+
+.emotion-positive {
+  background: #34d399;
+  color: #ecfdf5;
+}
+
+.emotion-anger {
+  background: #ef4444;
+  color: #fef2f2;
+}
 </style>
 </head>
 
@@ -187,8 +264,22 @@ button:hover {
 
   <div class="chat-container">
     <div class="header">
-      🤖 NEXA AI
-      <span>Professional Assistant</span>
+      <div class="header-left">
+        🤖 NEXA AI
+        <span>Professional Assistant</span>
+      </div>
+      <div class="personality-selector">
+        <label for="personality">👤</label>
+        <select id="personality">
+          <option value="calm">🌿 Calm</option>
+          <option value="professional">💼 Professional</option>
+          <option value="supportive">🤍 Supportive</option>
+          <option value="focus">🎯 Focus Coach</option>
+        </select>
+        <div id="emotionPill" class="emotion-pill emotion-neutral" aria-label="Current emotion: Neutral">
+          😐 Neutral
+        </div>
+      </div>
     </div>
 
     <div class="messages" id="messages"></div>
@@ -207,11 +298,14 @@ let focusActive = false;
 let focusTimer = null;
 let shouldSpeak = false;
 let recognition;
+let voiceInputActive = false;
+let currentEmotion = "neutral";
 
 let conversations = JSON.parse(localStorage.getItem("nexaChats")) || [];
 let currentChatId = null;
 
 const messagesDiv = document.getElementById("messages");
+const emotionPill = document.getElementById("emotionPill");
 
 /* SAVE */
 function saveChats() {
@@ -307,6 +401,7 @@ async function send(textFromVoice = null) {
   if (focusActive) return;
 
   const input = document.getElementById("msg");
+  const personality = document.getElementById("personality").value || "calm";
   const message = textFromVoice || input.value;
   if (!message) return;
 
@@ -316,12 +411,17 @@ async function send(textFromVoice = null) {
   const res = await fetch("http://localhost:5000/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ message, personality })
   });
 
   const data = await res.json();
   addMessage(data.reply, "bot");
 
+  if (data.emotion) updateEmotionPill(data.emotion);
+  if (voiceInputActive) {
+    voiceInputActive = false;
+    speakBotReply(data.reply, data.emotion);
+  }
   if (data.focusMode) startFocusMode(data.duration);
 }
 
@@ -331,7 +431,51 @@ function toggleVoice() {
   if (!SR) return alert("Voice not supported");
   recognition = new SR();
   recognition.start();
+  voiceInputActive = true;
   recognition.onresult = e => send(e.results[0][0].transcript);
+}
+
+/* VOICE TONE ADJUSTMENT */
+function adjustVoiceByEmotion(emotion, utterance) {
+  const emotionSettings = {
+    calm: { pitch: 0.9, rate: 0.85 },
+    anxiety: { pitch: 0.8, rate: 0.75 },
+    sadness: { pitch: 0.75, rate: 0.7 },
+    positive: { pitch: 1.1, rate: 1.05 },
+    anger: { pitch: 0.85, rate: 0.9 },
+    neutral: { pitch: 1.0, rate: 1.0 }
+  };
+  
+  const settings = emotionSettings[emotion] || emotionSettings.neutral;
+  utterance.pitch = settings.pitch;
+  utterance.rate = settings.rate;
+}
+
+/* SPEAK BOT REPLY */
+function speakBotReply(text, emotion) {
+  if (!window.speechSynthesis) return;
+  
+  const utterance = new SpeechSynthesisUtterance(text);
+  adjustVoiceByEmotion(emotion || "neutral", utterance);
+  window.speechSynthesis.speak(utterance);
+}
+
+/* EMOTION PILL UPDATE */
+function updateEmotionPill(emotion) {
+  currentEmotion = emotion || "neutral";
+  const emotionMap = {
+    neutral: { emoji: "😐", label: "Neutral", class: "emotion-neutral" },
+    calm: { emoji: "🌿", label: "Calm", class: "emotion-calm" },
+    anxiety: { emoji: "😟", label: "Anxiety", class: "emotion-anxiety" },
+    sadness: { emoji: "🌧️", label: "Sadness", class: "emotion-sadness" },
+    positive: { emoji: "😊", label: "Positive", class: "emotion-positive" },
+    anger: { emoji: "🔥", label: "Anger", class: "emotion-anger" }
+  };
+  
+  const emotionData = emotionMap[currentEmotion] || emotionMap.neutral;
+  emotionPill.innerText = `${emotionData.emoji} ${emotionData.label}`;
+  emotionPill.className = `emotion-pill ${emotionData.class}`;
+  emotionPill.setAttribute("aria-label", `Current emotion: ${emotionData.label}`);
 }
 
 /* FOCUS MODE */
@@ -351,6 +495,7 @@ function startFocusMode(minutes) {
 
 /* INIT */
 conversations.length ? loadChat(conversations[0].id) : newChat();
+updateEmotionPill("neutral");
 </script>
 
 </body>

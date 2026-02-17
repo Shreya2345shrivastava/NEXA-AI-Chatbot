@@ -140,6 +140,12 @@ body {
   display: flex;
   gap: 6px;
   font-size: 12px;
+  padding: 6px 20px;
+  padding-top: 4px;
+  border-bottom: 1px solid #1f2228;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 0;
 }
 
 .mode-indicator {
@@ -228,17 +234,28 @@ body {
 }
 
 .header {
-  padding: 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid #2a2d34;
   font-weight: 600;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .header span {
@@ -309,11 +326,13 @@ button:hover {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .personality-selector label {
-  font-size: 13px;
+  font-size: 12px;
   color: #9ca3af;
+  white-space: nowrap;
 }
 
 .personality-selector select {
@@ -323,7 +342,8 @@ button:hover {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .personality-selector select:hover {
@@ -333,18 +353,22 @@ button:hover {
 /* EMOTION PILL */
 .emotion-pill {
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
   font-size: 12px;
+  font-weight: 500;
   cursor: default;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .emotion-pill.neutral { background: #2a2d34; color: #e5e7eb; }
-.emotion-pill.anxiety { background: #facc15; color: #000; }
-.emotion-pill.sadness { background: #64748b; color: #e5e7eb; }
-.emotion-pill.positive { background: #22c55e; color: #000; }
-.emotion-pill.anger { background: #ef4444; color: #e5e7eb; }
+.emotion-pill.anxiety { background: #a855f7; color: #fff; }
+.emotion-pill.sadness { background: #3b82f6; color: #fff; }
+.emotion-pill.positive { background: #10b981; color: #000; }
+.emotion-pill.anger { background: #ef4444; color: #fff; }
 
 /* LEGACY EMOTION CLASSES (kept for compatibility) */
 .chat-container.emotion-anxiety {
@@ -390,18 +414,20 @@ button:hover {
         🤖 NEXA AI
         <span>Professional Assistant</span>
       </div>
-      <div class="personality-selector">
-        <label for="personality">👤</label>
-        <select id="personality">
-          <option value="calm">🌿 Calm</option>
-          <option value="professional">💼 Professional</option>
-          <option value="supportive">🤍 Supportive</option>
-          <option value="focus">🎯 Focus Coach</option>
-        </select>
-        <div id="emotionPill" class="emotion-pill neutral">🙂 Neutral</div>
+      <div class="header-right">
+        <div class="personality-selector">
+          <label for="personality">👤</label>
+          <select id="personality">
+            <option value="calm">🌿 Calm</option>
+            <option value="professional">💼 Professional</option>
+            <option value="supportive">🤍 Supportive</option>
+            <option value="focus">🎯 Focus Coach</option>
+          </select>
+        </div>
+        <div id="emotionPill" class="emotion-pill neutral">😐 Neutral</div>
       </div>
-      <div class="mode-indicators" id="modeIndicators"></div>
     </div>
+    <div class="mode-indicators" id="modeIndicators"></div>
 
     <div class="messages" id="messages"></div>
 
@@ -653,8 +679,8 @@ function speakBotReply(text, emotion) {
   window.speechSynthesis.speak(utterance);
 }
 
-/* EMOTION UI UPDATE */
-function updateEmotionUI(emotion) {
+/* SET EMOTION UI (Main emotion update function) */
+function setEmotionUI(emotion) {
   const pill = document.getElementById("emotionPill");
   const chat = document.querySelector(".chat-container");
 
@@ -662,29 +688,39 @@ function updateEmotionUI(emotion) {
 
   const labels = {
     anxiety: "😟 Anxiety",
-    sadness: "🌧️ Sadness",
+    sadness: "😢 Sad",
     positive: "😊 Positive",
-    anger: "🔥 Anger",
-    neutral: "🙂 Neutral"
+    anger: "😠 Angry",
+    neutral: "😐 Neutral"
   };
 
-  // Reset all glow and emotion classes
+  // Reset all emotion and glow classes
   pill.className = "emotion-pill";
-  chat.classList.remove("emotion-anxiety", "emotion-sadness", "emotion-positive", "emotion-anger");
+  chat.classList.remove("emotion-anxiety", "emotion-sadness", "emotion-positive", "emotion-anger", "emotion-neutral");
   chat.classList.remove("glow-anxiety", "glow-sadness", "glow-positive", "glow-anger", "glow-neutral");
 
   // Apply emotion pill class
-  pill.classList.add(emotion || "neutral");
+  const emoteType = emotion || "neutral";
+  pill.classList.add(emoteType);
   
   // Apply emotion and glow classes to chat container
-  if (emotion && emotion !== "neutral") {
-    chat.classList.add(`emotion-${emotion}`);
-    chat.classList.add(`glow-${emotion}`);
+  if (emoteType !== "neutral") {
+    chat.classList.add(`emotion-${emoteType}`);
+    chat.classList.add(`glow-${emoteType}`);
   } else {
     chat.classList.add("glow-neutral");
   }
   
-  pill.innerText = labels[emotion] || "🙂 Neutral";
+  // Update pill text with label
+  pill.innerText = labels[emoteType] || "😐 Neutral";
+  
+  // Update current emotion for reference
+  currentEmotion = emoteType;
+}
+
+/* UPDATE EMOTION UI (Legacy - calls setEmotionUI) */
+function updateEmotionUI(emotion) {
+  setEmotionUI(emotion);
 }
 
 /* EMOTION PILL UPDATE */
